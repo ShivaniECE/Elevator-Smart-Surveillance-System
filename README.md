@@ -28,8 +28,6 @@ Connecting Wires
 
 Circuit Diagram
 
-(Add your project image here)
-
 ESP32 Code
 
 (Add your ESP32 code here)
