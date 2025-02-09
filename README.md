@@ -15,6 +15,38 @@ Real-Time Notifications: Sends alerts to a mobile app using Blynk.
 Wireless Data Transmission: Uses ESP32-S3 for seamless data logging and alerts.
 
 Components Used
+void checkDoorSound() {
+  int16_t sampleBuffer[SAMPLES];  // Buffer to hold raw audio data
+  size_t bytesRead;
+
+  // Read audio samples from the microphone
+  i2s_read(I2S_NUM_0, sampleBuffer, sizeof(sampleBuffer), &bytesRead, portMAX_DELAY);
+
+  // Convert audio samples to frequency domain using FFT
+  for (int i = 0; i < SAMPLES; i++) {
+    vReal[i] = sampleBuffer[i];
+    vImag[i] = 0;
+  }
+
+  FFT.Windowing(vReal, SAMPLES, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
+  FFT.Compute(vReal, vImag, SAMPLES, FFT_FORWARD);
+  FFT.ComplexToMagnitude(vReal, vImag, SAMPLES);
+
+  // Find the peak frequency
+  double peakFrequency = FFT.MajorPeak(vReal, SAMPLES, 44100);
+  Serial.print("Peak Frequency: ");
+  Serial.println(peakFrequency);
+
+  // Trigger a notification if peak frequency exceeds 14.3 kHz
+  if (peakFrequency > 14300) {
+    Serial.println("Abnormal Door Sound Detected! Logging Event...");
+    Blynk.logEvent("door_fault_alert", "Abnormal Door Sound Detected! Frequency exceeds 14.3 kHz.");
+  } else {
+    Serial.println("Normal Door Sound Detected");
+  }
+
+  delay(1000);  // Delay for audio readings
+}
 
 ESP32-S3
 
